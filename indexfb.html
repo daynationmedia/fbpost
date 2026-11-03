@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FB Auto-Poster Pro Dashboard</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        fb: {
+                            blue: '#1877F2',
+                            hover: '#166FE5',
+                            dark: '#0B1426',
+                            card: '#1E293B',
+                            border: '#334155'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Custom scrollbar for console log */
+        .console-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .console-scrollbar::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        .console-scrollbar::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 dark:bg-slate-900 text-gray-800 dark:text-gray-100 min-h-screen flex flex-col transition-colors duration-200">
+
+    <!-- App Container -->
+    <div class="flex flex-1 h-screen overflow-hidden">
+
+        <!-- Sidebar Navigation -->
+        <aside id="sidebar" class="w-64 bg-white dark:bg-slate-800 border-r border-gray-200 dark:border-slate-700 flex flex-col justify-between transition-all duration-300 z-20 absolute md:relative h-full -translate-x-full md:translate-x-0">
+            <div>
+                <!-- Logo & Brand -->
+                <div class="p-5 flex items-center justify-between border-b border-gray-200 dark:border-slate-700">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 rounded-xl bg-fb-blue flex items-center justify-center text-white shadow-lg shadow-blue-500/30">
+                            <i data-lucide="share-2" class="w-6 h-6"></i>
+                        </div>
+                        <div>
+                            <h1 class="font-bold text-lg leading-tight tracking-wide">FB Poster</h1>
+                            <span class="text-xs text-blue-500 font-medium">Pro Automation</span>
+                        </div>
+                    </div>
+                    <button id="close-sidebar-mobile" class="md:hidden text-gray-500 hover:text-gray-700 dark:text-gray-400">
+                        <i data-lucide="x" class="w-6 h-6"></i>
+                    </button>
+                </div>
+
+                <!-- Nav Links -->
+                <nav class="p-4 space-y-1.5">
+                    <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-btn active flex items-center w-full px-4 py-3 rounded-xl text-sm font-medium transition-colors bg-blue-50 text-fb-blue dark:bg-slate-700/60 dark:text-blue-400">
+                        <i data-lucide="layout-dashboard" class="w-5 h-5 mr-3"></i>
+                        Dashboard & Penjadwal
+                    </button>
+                    <button onclick="switchTab('create')" id="nav-create" class="nav-btn flex items-center w-full px-4 py-3 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-700/40 hover:text-gray-900 dark:hover:text-white transition-colors">
+                        <i data-lucide="pen-tool" class="w-5 h-5 mr-3"></i>
+                        Buat Postingan Baru
+                    </button>
+                    <button onclick="switchTab('targets')" id="nav-targets" class="nav-btn flex items-center w-full px-4 py-3 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-700/40 hover:text-gray-900 dark:hover:text-white transition-colors">
+                        <i data-lucide="layers" class="w-5 h-5 mr-3"></i>
+                        Target (Halaman / Grup)
+                    </button>
+                    <button onclick="switchTab('settings')" id="nav-settings" class="nav-btn flex items-center w-full px-4 py-3 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-700/40 hover:text-gray-900 dark:hover:text-white transition-colors">
+                        <i data-lucide="key" class="w-5 h-5 mr-3"></i>
+                        Graph API Token
+                    </button>
+                    <button onclick="switchTab('logs')" id="nav-logs" class="nav-btn flex items-center w-full px-4 py-3 rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-700/40 hover:text-gray-900 dark:hover:text-white transition-colors">
+                        <i data-lucide="terminal" class="w-5 h-5 mr-3"></i>
+                        Log Konsol API
+                    </button>
+                </nav>
+            </div>
+
+            <!-- Dark Mode & Status Card -->
+            <div class="p-4 border-t border-gray-200 dark:border-slate-700 space-y-3">
+                <div class="bg-gray-100 dark:bg-slate-900 p-3 rounded-xl flex items-center justify-between">
+                    <div class="flex items-center space-x-2">
+                        <div id="token-status-dot" class="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse"></div>
+                        <span id="token-status-text" class="text-xs font-semibold text-gray-600 dark:text-gray-300">Token: Belum Set</span>
+                    </div>
+                    <button onclick="switchTab('settings')" class="text-xs text-fb-blue hover:underline">Ubah</button>
+                </div>
+
+                <div class="flex items-center justify-between px-2 pt-2">
+                    <span class="text-xs font-medium text-gray-500 dark:text-gray-400">Mode Gelap</span>
+                    <button id="theme-toggle" class="w-11 h-6 bg-gray-300 dark:bg-fb-blue rounded-full p-1 transition-colors duration-200 focus:outline-none flex items-center">
+                        <div class="w-4 h-4 bg-white rounded-full transition-transform duration-200 transform dark:translate-x-5 shadow"></div>
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
+
+            <!-- Top Header -->
+            <header class="h-16 bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700 flex items-center justify-between px-6 z-10">
+                <div class="flex items-center">
+                    <button id="open-sidebar-mobile" class="md:hidden mr-4 text-gray-500 hover:text-gray-700 dark:text-gray-400">
+                        <i data-lucide="menu" class="w-6 h-6"></i>
+                    </button>
+                    <h2 id="page-title" class="text-xl font-bold text-gray-800 dark:text-white">Dashboard & Penjadwal</h2>
+                </div>
+                
+                <div class="flex items-center space-x-3">
+                    <button onclick="switchTab('create')" class="bg-fb-blue hover:bg-fb-hover text-white text-sm font-medium px-4 py-2 rounded-xl flex items-center shadow-md shadow-blue-500/20 transition-all">
+                        <i data-lucide="plus" class="w-4 h-4 mr-1.5"></i>
+                        Post Baru
+                    </button>
+                </div>
+            </header>
+
+            <!-- Main Body Scrollable Container -->
+            <main class="flex-1 overflow-y-auto p-6 bg-gray-50 dark:bg-slate-900">
+                
+                <!-- Alert Box Container -->
+                <div id="alert-container" class="mb-6 hidden"></div>
+
+                <!-- SECTION 1: DASHBOARD -->
+                <div id="section-dashboard" class="tab-content space-y-6">
+                    <!-- Stats Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-5">
+                        <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-sm flex items-center justify-between">
+                            <div>
+                                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Total Antrean</p>
+                                <h3 id="stat-total" class="text-2xl font-bold mt-1">0</h3>
+                            </div>
+                            <div class="w-12 h-12 rounded-xl bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+                                <i data-lucide="clock" class="w-6 h-6"></i>
+                            </div>
+                        </div>
+
+                        <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-sm flex items-center justify-between">
+                            <div>
+                                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Berhasil Terbit</p>
+                                <h3 id="stat-published" class="text-2xl font-bold text-emerald-500 mt-1">0</h3>
+                            </div>
+                            <div class="w-12 h-12 rounded-xl bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+                                <i data-lucide="check-circle" class="w-6 h-6"></i>
+                            </div>
+                        </div>
+
+                        <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-sm flex items-center justify-between">
+                            <div>
+                                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Menunggu</p>
+                                <h3 id="stat-pending" class="text-2xl font-bold text-amber-500 mt-1">0</h3>
+                            </div>
+                            <div class="w-12 h-12 rounded-xl bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400 flex items-center justify-center">
+                                <i data-lucide="loader" class="w-6 h-6 animate-spin"></i>
+                            </div>
+                        </div>
+
+                        <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-sm flex items-center justify-between">
+                            <div>
+                                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Gagal</p>
+                                <h3 id="stat-failed" class="text-2xl font-bold text-rose-500 mt-1">0</h3>
+                            </div>
+                            <div class="w-12 h-12 rounded-xl bg-rose-100 dark:bg-rose-900/40 text-rose-600 dark:text-rose-400 flex items-center justify-center">
+                                <i data-lucide="alert-triangle" class="w-6 h-6"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Queue Table Card -->
+                    <div class="bg-white dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 shadow-sm overflow-hidden">
+                        <div class="p-5 border-b border-gray-200 dark:border-slate-700 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                            <div>
+                                <h3 class="font-bold text-lg text-gray-800 dark:text-white">Daftar Antrean & Jadwal Post</h3>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">Postingan akan dikirimkan otomatis sesuai waktu jadwal atau picu secara manual.</p>
+                            </div>
+                            <div class="flex items-center space-x-2 w-full sm:w-auto">
+                                <button onclick="runSchedulerCheck()" class="w-full sm:w-auto bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 text-xs font-semibold px-3 py-2 rounded-xl flex items-center justify-center transition-colors">
+                                    <i data-lucide="refresh-cw" class="w-3.5 h-3.5 mr-1.5"></i>
+                                    Jalankan Scheduler Now
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Table -->
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-gray-50 dark:bg-slate-900/50 text-gray-500 dark:text-gray-400 text-xs font-semibold uppercase tracking-wider border-b border-gray-200 dark:border-slate-700">
+                                        <th class="p-4">Post Content</th>
+                                        <th class="p-4">Target (Grup / Page)</th>
+                                        <th class="p-4">Jadwal Kirim</th>
+                                        <th class="p-4">Status</th>
+                                        <th class="p-4 text-right">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="queue-table-body" class="divide-y divide-gray-200 dark:divide-slate-700 text-sm">
+                                    <!-- Dynamic rows inserted here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION 2: CREATE POST -->
+                <div id="section-create" class="tab-content hidden space-y-6">
+                    <div class="max-w-3xl mx-auto bg-white dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 p-6 shadow-sm">
+                        <h3 class="font-bold text-lg text-gray-800 dark:text-white mb-1">Buat Postingan Baru</h3>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mb-6">Jadwalkan pesan atau posting langsung ke Halaman / Grup FB Anda.</p>
+
+                        <form id="create-post-form" onsubmit="handleCreatePost(event)" class="space-y-5">
+                            <!-- Target Selection -->
+                            <div>
+                                <label class="block text-xs font-semibold uppercase text-gray-600 dark:text-gray-300 mb-2">Pilih Target Pengiriman *</label>
+                                <select id="post-target-select" required class="w-full bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-fb-blue text-sm">
+                                    <option value="">-- Pilih Halaman atau Grup Target --</option>
+                                </select>
+                                <p class="text-xs text-gray-400 mt-1">Belum ada target? <a href="#" onclick="switchTab('targets')" class="text-fb-blue hover:underline">Tambah target di sini</a></p>
+                            </div>
+
+                            <!-- Content Input -->
+                            <div>
+                                <label class="block text-xs font-semibold uppercase text-gray-600 dark:text-gray-300 mb-2">Pesan / Konten Status *</label>
+                                <textarea id="post-message" rows="5" required placeholder="Tuliskan kata-kata postingan Anda di sini..." class="w-full bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-xl p-4 focus:outline-none focus:ring-2 focus:ring-fb-blue text-sm"></textarea>
+                            </div>
+
+                            <!-- Image URL -->
+                            <div>
+                                <label class="block text-xs font-semibold uppercase text-gray-600 dark:text-gray-300 mb-2">URL Gambar / Foto (Opsional)</label>
+                                <div class="relative">
+                                    <input type="url" id="post-image-url" placeholder="https://example.com/gambar.jpg" class="w-full bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-xl pl-10 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-fb-blue text-sm">
+                                    <i data-lucide="image" class="w-5 h-5 absolute left-3 top-3.5 text-gray-400"></i>
+                                </div>
+                            </div>
+
+                            <!-- Schedule Time & Action Type -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-semibold uppercase text-gray-600 dark:text-gray-300 mb-2">Waktu Publikasi *</label>
+                                    <input type="datetime-local" id="post-schedule-time" required class="w-full bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-fb-blue text-sm">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold uppercase text-gray-600 dark:text-gray-300 mb-2">Mode Eksekusi</label>
+                                    <select id="post-mode" class="w-full bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-fb-blue text-sm">
+                                        <option value="schedule">Jadwalkan untuk Waktu Terpilih</option>
+                                        <option value="now">Simpan & Kirim Sekarang</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Submit Buttons -->
+                            <div class="pt-4 flex items-center justify-end space-x-3">
+                                <button type="button" onclick="switchTab('dashboard')" class="px-5 py-2.5 rounded-xl border border-gray-300 dark:border-slate-700 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 text-sm font-medium">Batal</button>
+                                <button type="submit" class="bg-fb-blue hover:bg-fb-hover text-white px-6 py-2.5 rounded-xl text-sm font-medium shadow-md shadow-blue-500/20 flex items-center">
+                                    <i data-lucide="send" class="w-4 h-4 mr-2"></i>
+                                    Simpan & Jadwalkan
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- SECTION 3: TARGET MANAGER -->
+                <div id="section-targets" class="tab-content hidden space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <!-- Form Add Target -->
+                        <div class="bg-white dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 p-6 shadow-sm h-fit">
+                            <h3 class="font-bold text-lg text-gray-800 dark:text-white mb-1">Tambah Target Baru</h3>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mb-5">Simpan ID Facebook Group atau Page tujuan.</p>
+
+                            <form id="add-target-form" onsubmit="handleAddTarget(event)" class="space-y-4">
+                                <div>
+                                    <label class="block text-xs font-semibold uppercase text-gray-600 dark:text-gray-300 mb-1">Nama Target</label>
+                                    <input type="text" id="target-name" placeholder="Contoh: Komunitas Bisnis FB" required class="w-full bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-fb-blue">
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-semibold uppercase text-gray-600 dark:text-gray-300 mb-1">Tipe Target</label>
+                                    <select id="target-type" class="w-full bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-fb-blue">
+                                        <option value="Page">Facebook Page (Halaman)</option>
+                                        <option value="Group">Facebook Group (Grup)</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-semibold uppercase text-gray-600 dark:text-gray-300 mb-1">Facebook Target ID</label>
+                                    <input type="text" id="target-id" placeholder="Contoh: 109283746554" required class="w-full bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-fb-blue">
+                                    <p class="text-[11px] text-gray-400 mt-1">Dapatkan ID numerik dari URL Halaman/Grup Anda.</p>
+                                </div>
+
+                                <button type="submit" class="w-full bg-fb-blue hover:bg-fb-hover text-white py-2.5 rounded-xl font-medium text-sm flex items-center justify-center shadow-md">
+                                    <i data-lucide="plus-circle" class="w-4 h-4 mr-2"></i>
+                                    Simpan Target
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- Target List Table -->
+                        <div class="md:col-span-2 bg-white dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 p-6 shadow-sm">
+                            <h3 class="font-bold text-lg text-gray-800 dark:text-white mb-1">Daftar Target Tersimpan</h3>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mb-5">Target yang tersedia untuk jadwal posting.</p>
+
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left">
+                                    <thead>
+                                        <tr class="bg-gray-50 dark:bg-slate-900/50 text-gray-500 dark:text-gray-400 text-xs font-semibold uppercase tracking-wider border-b border-gray-200 dark:border-slate-700">
+                                            <th class="p-3">Nama</th>
+                                            <th class="p-3">Tipe</th>
+                                            <th class="p-3">Target ID</th>
+                                            <th class="p-3 text-right">Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="target-table-body" class="divide-y divide-gray-200 dark:divide-slate-700 text-sm">
+                                        <!-- Dynamic target rows -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION 4: SETTINGS / API TOKEN -->
+                <div id="section-settings" class="tab-content hidden space-y-6">
+                    <div class="max-w-2xl mx-auto bg-white dark:bg-slate-800 rounded-2xl border border-gray-200 dark:border-slate-700 p-6 shadow-sm">
+                        <div class="flex items-center space-x-3 mb-4">
+                            <div class="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900/40 text-fb-blue flex items-center justify-center">
+                                <i data-lucide="key" class="w-5 h-5"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-lg text-gray-800 dark:text-white">Pengaturan Graph API Token</h3>
+                                <p class="text-xs text-gray-500 dark:text-gray-400">Token Akses Facebook diperlukan untuk mengirim status.</p>
+                            </div>
+                        </div>
+
+                        <form id="token-form" onsubmit="handleSaveToken(event)" class="space-y-4">
+                            <div>
+                                <label class="block text-xs font-semibold uppercase text-gray-600 dark:text-gray-300 mb-2">User / Page Access Token *</label>
+                                <textarea id="access-token-input" rows="4" placeholder="EAAB..." required class="w-full bg-gray-50 dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-xl p-4 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-fb-blue"></textarea>
+                            </div>
+
+                            <div class="bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/50 p-4 rounded-xl text-xs text-amber-700 dark:text-amber-300 space-y-1.5">
+                                <div class="font-semibold flex items-center">
+                                    <i data-lucide="info" class="w-4 h-4 mr-1.5"></i> Informasi Akses API:
+                                </div>
+                                <p>• Jika Token Valid dimasukkan, aplikasi akan mengirim HTTP POST asli ke Endpoint Facebook Graph API (`graph.facebook.com`).</p>
+                                <p>• Jika tidak memiliki token asli, aplikasi secara otomatis berjalan dalam <strong>Mode Simulasi</strong> untuk menguji respons.</p>
+                                <p>• Token disimpan secara aman di <code>localStorage</code> browser lokal Anda.</p>
+                            </div>
+
+                            <div class="flex items-center justify-between pt-2">
+                                <button type="button" onclick="clearToken()" class="text-xs text-rose-500 hover:underline">Hapus Token</button>
+                                <button type="submit" class="bg-fb-blue hover:bg-fb-hover text-white px-6 py-2.5 rounded-xl text-sm font-medium shadow-md">
+                                    Simpan Token
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- SECTION 5: LOG CONSOLE -->
+                <div id="section-logs" class="tab-content hidden space-y-6">
+                    <div class="bg-slate-950 rounded-2xl border border-slate-800 shadow-xl overflow-hidden flex flex-col h-[600px]">
+                        <!-- Console Header -->
+                        <div class="bg-slate-900 px-5 py-3 border-b border-slate-800 flex items-center justify-between">
+                            <div class="flex items-center space-x-2">
+                                <div class="w-3 h-3 rounded-full bg-rose-500"></div>
+                                <div class="w-3 h-3 rounded-full bg-amber-500"></div>
+                                <div class="w-3 h-3 rounded-full bg-emerald-500"></div>
+                                <span class="text-xs font-mono text-slate-400 ml-3">Graph API Request/Response Console</span>
+                            </div>
+                            <button onclick="clearLogs()" class="text-xs text-slate-400 hover:text-white flex items-center">
+                                <i data-lucide="trash-2" class="w-3.5 h-3.5 mr-1"></i>
+                                Bersihkan Log
+                            </button>
+                        </div>
+
+                        <!-- Console Output -->
+                        <div id="console-output" class="p-5 font-mono text-xs text-slate-300 overflow-y-auto flex-1 space-y-3 console-scrollbar">
+                            <div class="text-slate-500">// System initialized. Ready for Graph API logs...</div>
+                        </div>
+                    </div>
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+    <!-- Application JavaScript Logic -->
+    <script>
+        // Default Mock Data & Storage Keys
+        const STORAGE_KEY_POSTS = 'fb_auto_poster_posts';
+        const STORAGE_KEY_TARGETS = 'fb_auto_poster_targets';
+        const STORAGE_KEY_TOKEN = 'fb_auto_poster_token';
+
+        let posts = JSON.parse(localStorage.getItem(STORAGE_KEY_POSTS)) || [
+            {
+                id: 'post-1',
+                targetId: 'target-1',
+                targetName: 'Halaman Olahraga Indonesia',
+                message: 'Halo semuanya! Selamat pagi dan tetap semangat menjalani aktivitas hari ini 💪 #Motivation',
+                imageUrl: 'https://images.unsplash.com/photo-1517649763962-0c623266010b?w=500',
+                scheduledTime: new Date(Date.now() + 3600000).toISOString().slice(0, 16),
+                status: 'Pending',
+                fbPostId: null,
+                createdAt: new Date().toISOString()
+            }
+        ];
+
+        let targets = JSON.parse(localStorage.getItem(STORAGE_KEY_TARGETS)) || [
+            { id: 'target-1', name: 'Halaman Olahraga Indonesia', type: 'Page', fbId: '109283746554' },
+            { id: 'target-2', name: 'Grup Pengusaha Muda', type: 'Group', fbId: '987654321012' }
+        ];
+
+        let accessToken = localStorage.getItem(STORAGE_KEY_TOKEN) || '';
+
+        // Initialize App
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            initTheme();
+            updateTokenStatusDisplay();
+            renderTargetsSelect();
+            renderTargetsTable();
+            renderQueueTable();
+            updateStats();
+            
+            // Set default datetime to current + 10 mins
+            const now = new Date(Date.now() + 600000);
+            document.getElementById('post-schedule-time').value = now.toISOString().slice(0, 16);
+            if(accessToken) {
+                document.getElementById('access-token-input').value = accessToken;
+            }
+
+            // Automatic Scheduler Loop Check (Every 15 Seconds)
+            setInterval(runSchedulerCheck, 15000);
+        });
+
+        // Theme Toggle (Dark Mode)
+        function initTheme() {
+            const themeToggleBtn = document.getElementById('theme-toggle');
+            themeToggleBtn.addEventListener('click', () => {
+                document.documentElement.classList.toggle('dark');
+            });
+        }
+
+        // Sidebar Navigation Switcher
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('bg-blue-50', 'text-fb-blue', 'dark:bg-slate-700/60', 'dark:text-blue-400');
+                btn.classList.add('text-gray-600', 'dark:text-gray-400');
+            });
+
+            document.getElementById(`section-${tabId}`).classList.remove('hidden');
+            const activeNav = document.getElementById(`nav-${tabId}`);
+            activeNav.classList.add('bg-blue-50', 'text-fb-blue', 'dark:bg-slate-700/60', 'dark:text-blue-400');
+
+            // Titles
+            const titles = {
+                'dashboard': 'Dashboard & Penjadwal',
+                'create': 'Buat Postingan Baru',
+                'targets': 'Kelola Target (Halaman / Grup)',
+                'settings': 'Pengaturan Graph API Token',
+                'logs': 'Log Konsol API Real-time'
+            };
+            document.getElementById('page-title').innerText = titles[tabId];
+
+            // Close mobile sidebar if open
+            document.getElementById('sidebar').classList.add('-translate-x-full');
+        }
+
+        // Mobile Sidebar Toggles
+        document.getElementById('open-sidebar-mobile').addEventListener('click', () => {
+            document.getElementById('sidebar').classList.remove('-translate-x-full');
+        });
+        document.getElementById('close-sidebar-mobile').addEventListener('click', () => {
+            document.getElementById('sidebar').classList.add('-translate-x-full');
+        });
+
+        // Alert Banner Display Helper
+        function showAlert(message, type = 'success') {
+            const container = document.getElementById('alert-container');
+            const bgClass = type === 'success' ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/50 dark:border-emerald-800' : 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/50 dark:border-rose-800';
+            
+            container.className = `p-4 rounded-xl border text-sm flex items-center justify-between ${bgClass}`;
+            container.innerHTML = `
+                <div class="flex items-center">
+                    <i data-lucide="${type === 'success' ? 'check-circle' : 'alert-circle'}" class="w-5 h-5 mr-2"></i>
+                    <span>${message}</span>
+                </div>
+                <button onclick="this.parentElement.classList.add('hidden')" class="text-gray-400 hover:text-gray-600">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            `;
+            container.classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        // --- GRAPH API TOKEN MANAGER ---
+        function handleSaveToken(e) {
+            e.preventDefault();
+            const tokenValue = document.getElementById('access-token-input').value.trim();
+            accessToken = tokenValue;
+            localStorage.setItem(STORAGE_KEY_TOKEN, accessToken);
+            updateTokenStatusDisplay();
+            showAlert('Access Token berhasil disimpan di LocalStorage!');
+            logConsole('SYSTEM', 'Token Graph API Diperbarui.', { tokenLength: accessToken.length });
+        }
+
+        function clearToken() {
+            accessToken = '';
+            localStorage.removeItem(STORAGE_KEY_TOKEN);
+            document.getElementById('access-token-input').value = '';
+            updateTokenStatusDisplay();
+            showAlert('Token berhasil dihapus. Aplikasi kembali ke Mode Simulasi.', 'error');
+            logConsole('SYSTEM', 'Token dihapus. Mode Simulasi aktif.');
+        }
+
+        function updateTokenStatusDisplay() {
+            const dot = document.getElementById('token-status-dot');
+            const text = document.getElementById('token-status-text');
+            if (accessToken && accessToken.length > 20) {
+                dot.className = "w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse";
+                text.innerText = "Token: Aktif (Live)";
+            } else {
+                dot.className = "w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse";
+                text.innerText = "Token: Mode Simulasi";
+            }
+        }
+
+        // --- TARGET MANAGER ---
+        function handleAddTarget(e) {
+            e.preventDefault();
+            const name = document.getElementById('target-name').value.trim();
+            const type = document.getElementById('target-type').value;
+            const fbId = document.getElementById('target-id').value.trim();
+
+            const newTarget = {
+                id: 'target-' + Date.now(),
+                name,
+                type,
+                fbId
+            };
+
+            targets.push(newTarget);
+            saveTargets();
+            renderTargetsTable();
+            renderTargetsSelect();
+            document.getElementById('add-target-form').reset();
+            showAlert(`Target "${name}" berhasil ditambahkan!`);
+            logConsole('TARGET', 'Target FB Baru ditambahkan', newTarget);
+        }
+
+        function deleteTarget(id) {
+            targets = targets.filter(t => t.id !== id);
+            saveTargets();
+            renderTargetsTable();
+            renderTargetsSelect();
+            showAlert('Target berhasil dihapus.', 'error');
+        }
+
+        function saveTargets() {
+            localStorage.setItem(STORAGE_KEY_TARGETS, JSON.stringify(targets));
+        }
+
+        function renderTargetsSelect() {
+            const select = document.getElementById('post-target-select');
+            select.innerHTML = '<option value="">-- Pilih Halaman atau Grup Target --</option>';
+            targets.forEach(t => {
+                select.innerHTML += `<option value="${t.id}">${t.name} (${t.type} - ID: ${t.fbId})</option>`;
+            });
+        }
+
+        function renderTargetsTable() {
+            const tbody = document.getElementById('target-table-body');
+            if(targets.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-gray-400">Belum ada target tersimpan.</td></tr>`;
+                return;
+            }
+            tbody.innerHTML = targets.map(t => `
+                <tr class="hover:bg-gray-50 dark:hover:bg-slate-700/30">
+                    <td class="p-3 font-medium text-gray-800 dark:text-gray-200">${t.name}</td>
+                    <td class="p-3">
+                        <span class="px-2.5 py-1 rounded-full text-xs font-semibold ${t.type === 'Page' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300' : 'bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300'}">
+                            ${t.type}
+                        </span>
+                    </td>
+                    <td class="p-3 font-mono text-xs text-gray-500 dark:text-gray-400">${t.fbId}</td>
+                    <td class="p-3 text-right">
+                        <button onclick="deleteTarget('${t.id}')" class="text-rose-500 hover:text-rose-700 p-1">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        // --- POST CREATOR & QUEUE ---
+        function handleCreatePost(e) {
+            e.preventDefault();
+            const targetId = document.getElementById('post-target-select').value;
+            const message = document.getElementById('post-message').value.trim();
+            const imageUrl = document.getElementById('post-image-url').value.trim();
+            const scheduleTime = document.getElementById('post-schedule-time').value;
+            const mode = document.getElementById('post-mode').value;
+
+            const targetObj = targets.find(t => t.id === targetId);
+            if (!targetObj) {
+                showAlert('Pilih target yang valid terlebih dahulu!', 'error');
+                return;
+            }
+
+            const newPost = {
+                id: 'post-' + Date.now(),
+                targetId: targetObj.id,
+                targetName: `${targetObj.name} (${targetObj.type})`,
+                message,
+                imageUrl: imageUrl || null,
+                scheduledTime: scheduleTime,
+                status: 'Pending',
+                fbPostId: null,
+                createdAt: new Date().toISOString()
+            };
+
+            posts.unshift(newPost);
+            savePosts();
+            renderQueueTable();
+            updateStats();
+            document.getElementById('create-post-form').reset();
+            
+            showAlert(mode === 'now' ? 'Post dibuat! Mengirim sekarang...' : 'Postingan berhasil dijadwalkan!');
+            switchTab('dashboard');
+
+            if (mode === 'now') {
+                executePost(newPost.id);
+            }
+        }
+
+        function savePosts() {
+            localStorage.setItem(STORAGE_KEY_POSTS, JSON.stringify(posts));
+        }
+
+        function deletePost(id) {
+            posts = posts.filter(p => p.id !== id);
+            savePosts();
+            renderQueueTable();
+            updateStats();
+        }
+
+        function renderQueueTable() {
+            const tbody = document.getElementById('queue-table-body');
+            if (posts.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-gray-400">Belum ada postingan dalam antrean.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = posts.map(p => {
+                let statusBadge = '';
+                if(p.status === 'Published') {
+                    statusBadge = `<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300"><i data-lucide="check" class="w-3 h-3 mr-1"></i> Terbit</span>`;
+                } else if(p.status === 'Failed') {
+                    statusBadge = `<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300"><i data-lucide="x" class="w-3 h-3 mr-1"></i> Gagal</span>`;
+                } else {
+                    statusBadge = `<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300"><i data-lucide="clock" class="w-3 h-3 mr-1"></i> Menunggu</span>`;
+                }
+
+                const formattedDate = new Date(p.scheduledTime).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' });
+
+                return `
+                    <tr class="hover:bg-gray-50 dark:hover:bg-slate-700/30 transition-colors">
+                        <td class="p-4 max-w-xs">
+                            <p class="font-medium text-gray-800 dark:text-gray-200 truncate">${p.message}</p>
+                            ${p.imageUrl ? `<span class="text-[11px] text-blue-500 flex items-center mt-1"><i data-lucide="image" class="w-3 h-3 mr-1"></i> Lampiran Gambar</span>` : ''}
+                        </td>
+                        <td class="p-4 text-xs font-medium text-gray-600 dark:text-gray-300">${p.targetName}</td>
+                        <td class="p-4 text-xs text-gray-500 dark:text-gray-400 font-mono">${formattedDate}</td>
+                        <td class="p-4">${statusBadge}</td>
+                        <td class="p-4 text-right space-x-1">
+                            ${p.status === 'Pending' ? `
+                                <button onclick="executePost('${p.id}')" title="Kirim Sekarang" class="px-2.5 py-1.5 bg-fb-blue text-white rounded-lg text-xs font-medium hover:bg-fb-hover inline-flex items-center">
+                                    <i data-lucide="send" class="w-3 h-3 mr-1"></i> Kirim
+                                </button>
+                            ` : ''}
+                            <button onclick="deletePost('${p.id}')" title="Hapus" class="p-1.5 text-gray-400 hover:text-rose-500 rounded-lg">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+            lucide.createIcons();
+        }
+
+        function updateStats() {
+            document.getElementById('stat-total').innerText = posts.length;
+            document.getElementById('stat-published').innerText = posts.filter(p => p.status === 'Published').length;
+            document.getElementById('stat-pending').innerText = posts.filter(p => p.status === 'Pending').length;
+            document.getElementById('stat-failed').innerText = posts.filter(p => p.status === 'Failed').length;
+        }
+
+        // --- GRAPH API & SCHEDULER EXECUTION ---
+        async function executePost(postId) {
+            const post = posts.find(p => p.id === postId);
+            if (!post) return;
+
+            const target = targets.find(t => t.id === post.targetId);
+            const targetFbId = target ? target.fbId : 'me';
+
+            logConsole('API_REQUEST', `Mengirim POST ke Graph API ID: ${targetFbId}`, {
+                endpoint: `https://graph.facebook.com/v18.0/${targetFbId}/feed`,
+                message: post.message,
+                imageUrl: post.imageUrl
+            });
+
+            // REAL API CALL OR SIMULATION
+            if (accessToken && accessToken.length > 20) {
+                try {
+                    const endpoint = `https://graph.facebook.com/v18.0/${targetFbId}/feed`;
+                    const payload = {
+                        message: post.message,
+                        access_token: accessToken
+                    };
+                    if (post.imageUrl) payload.link = post.imageUrl;
+
+                    const response = await fetch(endpoint, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok && data.id) {
+                        post.status = 'Published';
+                        post.fbPostId = data.id;
+                        logConsole('API_RESPONSE_SUCCESS', 'Berhasil Dipublikasikan ke Facebook!', data);
+                        showAlert(`Postingan berhasil terbit di Facebook! ID: ${data.id}`);
+                    } else {
+                        post.status = 'Failed';
+                        logConsole('API_RESPONSE_ERROR', 'Gagal mempublikasikan ke Graph API Facebook', data);
+                        showAlert(`Gagal Posting: ${data.error?.message || 'Token/Permission Error'}`, 'error');
+                    }
+                } catch (err) {
+                    post.status = 'Failed';
+                    logConsole('API_NETWORK_ERROR', 'Network Exception saat fetch', { error: err.message });
+                    showAlert('Network error saat menghubungkan ke Graph API.', 'error');
+                }
+            } else {
+                // SIMULATED RESPONSE
+                await new Promise(res => setTimeout(res, 1200)); // Simulasikan delay jaringan
+                const isSuccess = Math.random() > 0.1; // 90% sukses simulasi
+
+                if (isSuccess) {
+                    post.status = 'Published';
+                    post.fbPostId = `${targetFbId}_${Date.now()}`;
+                    logConsole('SIMULATED_SUCCESS', '[SIMULASI] Status berhasil diposting!', {
+                        id: post.fbPostId,
+                        status: 'Published via Mock Graph API'
+                    });
+                    showAlert('[SIMULASI] Postingan berhasil diterbitkan!');
+                } else {
+                    post.status = 'Failed';
+                    logConsole('SIMULATED_FAILED', '[SIMULASI] Postingan gagal!', {
+                        error: {
+                            message: "OAuthException: An unknown error occurred during simulation.",
+                            code: 100
+                        }
+                    });
+                    showAlert('[SIMULASI] Gagal mempublikasikan postingan.', 'error');
+                }
+            }
+
+            savePosts();
+            renderQueueTable();
+            updateStats();
+        }
+
+        // Automatic Check Scheduler
+        function runSchedulerCheck() {
+            const now = new Date().toISOString().slice(0, 16);
+            let executedAny = false;
+
+            posts.forEach(post => {
+                if (post.status === 'Pending' && post.scheduledTime <= now) {
+                    executedAny = true;
+                    logConsole('SCHEDULER', `Menjalankan jadwal otomatis untuk Post ID: ${post.id}`);
+                    executePost(post.id);
+                }
+            });
+
+            if (!executedAny) {
+                // Log periodic heartbeat silent check
+                // console.log("Scheduler checked: No pending posts to run.");
+            }
+        }
+
+        // --- CONSOLE LOG UTILITY ---
+        function logConsole(type, title, payload = null) {
+            const consoleBox = document.getElementById('console-output');
+            const timestamp = new Date().toLocaleTimeString();
+            
+            let typeColor = 'text-blue-400';
+            if (type.includes('SUCCESS')) typeColor = 'text-emerald-400';
+            if (type.includes('ERROR') || type.includes('FAILED')) typeColor = 'text-rose-400';
+            if (type.includes('SCHEDULER')) typeColor = 'text-amber-400';
+
+            const logEntry = document.createElement('div');
+            logEntry.className = 'border-b border-slate-900 pb-2 space-y-1';
+            logEntry.innerHTML = `
+                <div class="flex items-center space-x-2">
+                    <span class="text-slate-500 font-mono text-[10px]">[${timestamp}]</span>
+                    <span class="font-bold uppercase ${typeColor}">${type}:</span>
+                    <span class="text-slate-200 font-medium">${title}</span>
+                </div>
+                ${payload ? `<pre class="bg-slate-900 p-2 rounded text-[11px] text-slate-300 overflow-x-auto">${JSON.stringify(payload, null, 2)}</pre>` : ''}
+            `;
+
+            consoleBox.appendChild(logEntry);
+            consoleBox.scrollTop = consoleBox.scrollHeight;
+        }
+
+        function clearLogs() {
+            document.getElementById('console-output').innerHTML = '<div class="text-slate-500">// Log konsol dibersihkan.</div>';
+        }
+    </script>
+</body>
+</html>
